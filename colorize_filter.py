@@ -45,7 +45,6 @@ VIDEO_CODEC = "avc1"
 # Larger tiles mean larger regions for contrast adjustment.
 CLAHE_TILE_GRID_SIZE = (8, 8)
 
-
 # Suppress specific warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -170,6 +169,13 @@ def batch_colorize(input_dir, output_dir=DEFAULT_OUTPUT_DIR, render_factor=DEFAU
     for input_file in input_files:
         base_name = os.path.splitext(os.path.basename(input_file))[0]
         output_file = os.path.join(output_dir, f"{base_name}_color.mp4")
+        final_output_file = os.path.join(output_dir, f"{base_name}_final.mp4")
+        
+        # Skip if the final output file already exists
+        if os.path.exists(final_output_file):
+            print(f"Skipping {input_file} -> {final_output_file} already exists.")
+            continue
+
         print(f"\nProcessing {input_file} -> {output_file}")
         try:
             colorize_video(input_file, output_file, render_factor, saturation_scale, clahe_clip_limit, blend_factor)
