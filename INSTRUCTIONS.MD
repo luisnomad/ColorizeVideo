@@ -11,7 +11,7 @@ This script colorizes black and white videos using the DeOldify library and appl
     cd ColorizeVideo
     ```
 
-2.  **Create a Virtual Environment (Recommended):**
+2.  **Create a Virtual Environment (Recommended!):**
 
     Using a virtual environment isolates the project's dependencies and prevents conflicts with other Python projects.  You can use `venv` (recommended) or `conda`.
 
