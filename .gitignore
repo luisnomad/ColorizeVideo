@@ -24,6 +24,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.DS_Store
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -89,6 +90,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*_env/
 
 # Spyder project settings
 .spyderproject
@@ -123,3 +125,13 @@ test_images/*.jpeg
 test_images/*.JPEG 
 deoldify/.ipynb_checkpoints/*-checkpoint.py
 tmp*
+*.mp4
+*.avi
+*.mkv
+*.flv
+*.mov
+*.wmv
+*.vob
+*.ogv
+*.ogg
+*.drc

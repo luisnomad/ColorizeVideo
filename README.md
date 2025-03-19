@@ -1,5 +1,15 @@
 
-# DeOldify
+# Colorize
+
+This is a fork of DeOldify, a legacy project to colorize B/W videos. This fork contains a colorize_filter.py script, see [Instructions](./INSTRUCTIONS.md) to see how to use it.
+
+## Roadmap
+
+I am planning to add the following features:
+- Dockerized app for easy installations
+- Web interface to allow processing multiple videos, with progress indicator and side by side compare tool.
+
+## Legacy: DeOldify
 
 **This Reposisitory is Archived**  This project was a wild ride since I started it back in 2018.  6 years ago as of this writing (October 19, 2024)!.  It's time for me to move on and put this repo in the archives as I simply don't have the time to attend to it anymore, and frankly it's ancient as far as deep-learning projects go at this point! ~Jason
 
