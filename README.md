@@ -1,7 +1,7 @@
 
 # Colorize
 
-This is a fork of DeOldify, a legacy project to colorize B/W videos. This fork contains a colorize_filter.py script, see [Instructions](./INSTRUCTIONS.md) to see how to use it.
+This is a fork of DeOldify, a legacy project to colorize B/W videos. This fork contains a colorize_filter.py script, see [Instructions](INSTRUCTIONS.md) to see how to use it.
 
 ## Roadmap
 

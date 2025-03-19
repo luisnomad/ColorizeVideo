@@ -1,14 +1,14 @@
-# DeOldify Video Colorizer with Temporal Consistency
+# ColorizeVideo Video Colorizer with Temporal Consistency
 
 This script colorizes black and white videos using the DeOldify library and applies post-processing (histogram matching and blending) with OpenCV to improve temporal consistency and reduce flickering.
 
 ## Installation Instructions
 
-1.  **Clone the DeOldify Repository:**
+1.  **Clone the ColorizeVideo Repository:**
 
     ```bash
-    git clone [https://github.com/jantic/DeOldify.git](https://github.com/jantic/DeOldify.git)
-    cd DeOldify
+    git clone [https://github.com/luisnomad/ColorizeVideo.git](https://github.com/luisnomad/ColorizeVideo.git)
+    cd ColorizeVideo
     ```
 
 2.  **Create a Virtual Environment (Recommended):**
