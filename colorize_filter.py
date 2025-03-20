@@ -5,10 +5,14 @@ import shutil
 import glob
 import cv2
 import numpy as np
+import json
+import sys
+import re
 from deoldify import device
 from deoldify.device_id import DeviceId
 from deoldify.visualize import get_video_colorizer
-import warnings  # Import the warnings module
+import warnings
+from tqdm import tqdm
 
 # --- Constants ---
 
@@ -127,11 +131,43 @@ def colorize_video(input_path, output_path, render_factor=DEFAULT_RENDER_FACTOR,
 
     try:
         print(f"Colorizing {input_path} with render_factor={render_factor}...")
-        result_path = colorizer.colorize_from_file_name(
-            input_path,
-            render_factor=render_factor,
-            watermarked=False
-        )
+
+        # Custom progress callback to output JSON
+        def progress_callback(current, total):
+            percentage = (current / total) * 100
+            progress_data = {
+                "progress": {
+                    "current": current,
+                    "total": total,
+                    "percentage": percentage
+                }
+            }
+            print(json.dumps(progress_data), flush=True)
+
+        # Monkey-patch tqdm in DeOldify to use our callback
+        original_tqdm = tqdm
+        class CustomTqdm(original_tqdm):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self._current = 0
+                self._total = self.total
+
+            def update(self, n=1):
+                self._current += n
+                progress_callback(self._current, self._total)
+                super().update(n)
+
+        tqdm.tqdm = CustomTqdm
+
+        try:
+            result_path = colorizer.colorize_from_file_name(
+                input_path,
+                render_factor=render_factor,
+                watermarked=False
+            )
+        finally:
+            tqdm.tqdm = original_tqdm  # Restore original tqdm
+
         print(f"Colorization complete, result path: {result_path}")
 
         expected_result = os.path.join("video", "result", f"{base_name}.mp4")
@@ -157,23 +193,36 @@ def colorize_video(input_path, output_path, render_factor=DEFAULT_RENDER_FACTOR,
         shutil.rmtree(working_dir, ignore_errors=True)
         print("Cleanup complete.")
 
-def batch_colorize(input_dir, output_dir=DEFAULT_OUTPUT_DIR, render_factor=DEFAULT_RENDER_FACTOR, saturation_scale=DEFAULT_SATURATION_SCALE, clahe_clip_limit=DEFAULT_CLAHE_CLIP_LIMIT, blend_factor=DEFAULT_BLEND_FACTOR):
+def batch_colorize(input_files=None, input_dir=None, output_dir=DEFAULT_OUTPUT_DIR, render_factor=DEFAULT_RENDER_FACTOR, saturation_scale=DEFAULT_SATURATION_SCALE, clahe_clip_limit=DEFAULT_CLAHE_CLIP_LIMIT, blend_factor=DEFAULT_BLEND_FACTOR, recursive=False):
     os.makedirs(output_dir, exist_ok=True)
 
-    input_files = glob.glob(os.path.join(input_dir, "**", "*.mp4"), recursive=True)
-    if not input_files:
-        print(f"No .mp4 files found in {input_dir}")
+    # Determine the list of files to process
+    if input_files:
+        files_to_process = input_files
+    elif input_dir:
+        files_to_process = glob.glob(os.path.join(input_dir, "*.mp4"), recursive=recursive)
+    else:
+        print("Either input_files or input_dir must be provided.")
         return
 
-    print(f"Found {len(input_files)} video(s) to process.")
-    for input_file in input_files:
+    if not files_to_process:
+        print("No input files provided or found.")
+        return
+
+    print(f"Found {len(files_to_process)} video(s) to process.")
+    for input_file in files_to_process:
+        # Check if the input file is already a colorized output
+        if re.search(r'_(color|final)\.mp4$', input_file):
+            print(f"Skipping {input_file} -> appears to be a colorized output.")
+            continue
+
         base_name = os.path.splitext(os.path.basename(input_file))[0]
         output_file = os.path.join(output_dir, f"{base_name}_color.mp4")
         final_output_file = os.path.join(output_dir, f"{base_name}_final.mp4")
         
-        # Skip if the final output file already exists
-        if os.path.exists(final_output_file):
-            print(f"Skipping {input_file} -> {final_output_file} already exists.")
+        # Skip if both output files already exist
+        if os.path.exists(output_file) and os.path.exists(final_output_file):
+            print(f"Skipping {input_file} -> {output_file} and {final_output_file} already exist.")
             continue
 
         print(f"\nProcessing {input_file} -> {output_file}")
@@ -184,12 +233,24 @@ def batch_colorize(input_dir, output_dir=DEFAULT_OUTPUT_DIR, render_factor=DEFAU
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Colorize B/W videos with DeOldify.")
-    parser.add_argument("-input_dir", required=True, help="Directory containing input B/W video(s)")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-input", nargs='+', help="List of input B/W video file paths")
+    group.add_argument("-input_dir", help="Directory containing input B/W video(s)")
     parser.add_argument("-output_dir", default=DEFAULT_OUTPUT_DIR, help="Directory to save colorized videos")
     parser.add_argument("-render_factor", type=int, default=DEFAULT_RENDER_FACTOR, help="Color intensity (10-40)")
     parser.add_argument("-saturation_scale", type=float, default=DEFAULT_SATURATION_SCALE, help="Saturation scaling factor (0.0-1.0)")
     parser.add_argument("-clahe_clip_limit", type=float, default=DEFAULT_CLAHE_CLIP_LIMIT, help="CLAHE clip limit (0.1-4.0)")
     parser.add_argument("-blend_factor", type=float, default=DEFAULT_BLEND_FACTOR, help="Blend factor for post-processing (0.0-1.0)")
+    parser.add_argument("-recursive", action="store_true", help="Recursively scan input_dir for .mp4 files")
     args = parser.parse_args()
 
-    batch_colorize(args.input_dir, args.output_dir, args.render_factor, args.saturation_scale, args.clahe_clip_limit, args.blend_factor)
+    batch_colorize(
+        input_files=args.input,
+        input_dir=args.input_dir,
+        output_dir=args.output_dir,
+        render_factor=args.render_factor,
+        saturation_scale=args.saturation_scale,
+        clahe_clip_limit=args.clahe_clip_limit,
+        blend_factor=args.blend_factor,
+        recursive=args.recursive
+    )
