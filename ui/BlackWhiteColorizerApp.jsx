@@ -2,119 +2,37 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, CheckCircle, XCircle, Film, File, FileVideo } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Film } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { spawn } from 'child_process';
-import path from 'path';
+import axios from 'axios';
 
 // ===============================
-// Service (Interacts with colorize_deoldify.py)
+// Service (Interacts with backend server)
 // ===============================
+
+const API_BASE_URL = 'http://localhost:3001';
 
 const service = {
-    processVideos: (files, outputDir) => {
-        return new Promise((resolve, reject) => {
-            if (!files || files.length === 0) {
-                reject(new Error("No files selected."));
-                return;
-            }
+    processVideos: async (files) => {
+        if (!files || files.length === 0) {
+            throw new Error("No files selected.");
+        }
 
-            // Map File objects to their paths
-            const filePaths = Array.from(files).map(file => file.path);
-            const videoIds = filePaths.map((filePath, index) => `video-${Date.now()}-${index}`);
-
-            // Resolve immediately with video IDs and file paths
-            resolve({ videoIds, filePaths });
+        const formData = new FormData();
+        Array.from(files).forEach(file => {
+            formData.append('videos', file);
         });
+
+        const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        return response.data;
     },
 
-    processVideo: (videoId, filePath, outputDir) => {
-        return new Promise((resolve, reject) => {
-            const scriptPath = path.resolve(__dirname, 'colorize_deoldify.py');
-            const args = [
-                scriptPath,
-                '-input',
-                filePath,
-                '-output_dir',
-                outputDir,
-            ];
-
-            const process = spawn('python3', args);
-
-            let progress = 0;
-            let errorMessage = null;
-
-            // Parse stdout for progress updates
-            process.stdout.on('data', (data) => {
-                const lines = data.toString().split('\n');
-                for (const line of lines) {
-                    try {
-                        const parsed = JSON.parse(line);
-                        if (parsed.progress) {
-                            progress = parsed.progress.percentage;
-                        }
-                    } catch (e) {
-                        // Not a JSON line, could be a log message
-                        if (line.includes('Failed to process')) {
-                            errorMessage = line;
-                        }
-                    }
-                }
-            });
-
-            // Capture stderr for errors
-            process.stderr.on('data', (data) => {
-                errorMessage = data.toString();
-            });
-
-            // Handle process exit
-            process.on('close', (code) => {
-                if (code !== 0) {
-                    reject(new Error(errorMessage || `Process exited with code ${code}`));
-                    return;
-                }
-
-                const baseName = path.basename(filePath, path.extname(filePath));
-                const colorizedPath = path.join(outputDir, `${baseName}_color.mp4`);
-                const postprocessedPath = path.join(outputDir, `${baseName}_final.mp4`);
-
-                // Check if output files exist
-                const outputExists = (file) => {
-                    try {
-                        return fs.existsSync(file) ? file : '';
-                    } catch {
-                        return '';
-                    }
-                };
-
-                resolve({
-                    progress,
-                    output: {
-                        original: filePath,
-                        colorized: outputExists(colorizedPath),
-                        postprocessed: outputExists(postprocessedPath),
-                    },
-                });
-            });
-
-            process.on('error', (err) => {
-                reject(new Error(`Failed to spawn process: ${err.message}`));
-            });
-        });
-    },
-
-    getVideoProcessingProgress: (videoId, processPromise) => {
-        return new Promise((resolve) => {
-            processPromise.then(({ progress }) => {
-                resolve(progress);
-            }).catch(() => {
-                resolve(0); // In case of error, return 0 progress
-            });
-        });
-    },
-
-    getOutputVideos: (videoId, processPromise) => {
-        return processPromise.then(({ output }) => output);
+    getVideoProcessingProgress: async (videoId) => {
+        const response = await axios.get(`${API_BASE_URL}/progress/${videoId}`);
+        return response.data;
     },
 };
 
@@ -122,17 +40,17 @@ const service = {
 // Types & Interfaces
 // ===============================
 
-interface VideoFile {
-    id: string;
-    name: string;
-    path: string;
-    progress: number;
-    original?: string;
-    colorized?: string;
-    postprocessed?: string;
-    error?: string;
-    status: 'pending' | 'processing' | 'completed' | 'failed';
-}
+const VideoFile = {
+    id: '',
+    name: '',
+    path: '',
+    progress: 0,
+    original: '',
+    colorized: '',
+    postprocessed: '',
+    error: '',
+    status: 'pending',
+};
 
 // ===============================
 // Components
@@ -148,14 +66,6 @@ const VideoCard = ({ video, onRetry }) => {
         if (video.colorized) setIsLoadingColorized(false);
         if (video.postprocessed) setIsLoadingPostprocessed(false);
     }, [video.original, video.colorized, video.postprocessed]);
-
-    const getFileTypeIcon = (filename) => {
-        if (!filename) return <File className="w-4 h-4" />;
-        if (filename.endsWith('.mp4') || filename.endsWith('.mov')) {
-            return <FileVideo className="w-4 h-4" />;
-        }
-        return <File className="w-4 h-4" />;
-    };
 
     return (
         <motion.div
@@ -194,7 +104,7 @@ const VideoCard = ({ video, onRetry }) => {
                     {video.original ? (
                         <div className="relative w-full aspect-video bg-black rounded-md overflow-hidden border border-gray-700">
                             <video
-                                src={video.original}
+                                src={`${API_BASE_URL}${video.original}`}
                                 className="absolute inset-0 w-full h-full object-contain"
                                 controls
                             />
@@ -216,7 +126,7 @@ const VideoCard = ({ video, onRetry }) => {
                     {video.colorized ? (
                         <div className="relative w-full aspect-video bg-black rounded-md overflow-hidden border border-gray-700">
                             <video
-                                src={video.colorized}
+                                src={`${API_BASE_URL}${video.colorized}`}
                                 className="absolute inset-0 w-full h-full object-contain"
                                 controls
                             />
@@ -238,7 +148,7 @@ const VideoCard = ({ video, onRetry }) => {
                     {video.postprocessed ? (
                         <div className="relative w-full aspect-video bg-black rounded-md overflow-hidden border border-gray-700">
                             <video
-                                src={video.postprocessed}
+                                src={`${API_BASE_URL}${video.postprocessed}`}
                                 className="absolute inset-0 w-full h-full object-contain"
                                 controls
                             />
@@ -262,10 +172,6 @@ const BlackWhiteColorizerApp = () => {
     const [videos, setVideos] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [dragOver, setDragOver] = useState(false);
-    const [outputDir] = useState(path.join(__dirname, 'colorized_videos')); // Define output directory
-
-    // Map of videoId to its processing promise
-    const [processingPromises, setProcessingPromises] = useState({});
 
     // --- Handlers ---
     const handleFileDrop = useCallback(async (e) => {
@@ -278,7 +184,7 @@ const BlackWhiteColorizerApp = () => {
 
         try {
             setIsProcessing(true);
-            const { videoIds, filePaths } = await service.processVideos(files, outputDir);
+            const { videoIds, filePaths } = await service.processVideos(files);
 
             // Initialize video entries
             const newVideos = filePaths.map((filePath, index) => ({
@@ -290,9 +196,9 @@ const BlackWhiteColorizerApp = () => {
             }));
             setVideos(prevVideos => [...prevVideos, ...newVideos]);
 
-            // Start processing each video
+            // Start polling for each video
             newVideos.forEach(video => {
-                processVideo(video.id, video.path);
+                processVideo(video.id);
             });
 
         } catch (error) {
@@ -308,7 +214,7 @@ const BlackWhiteColorizerApp = () => {
 
         try {
             setIsProcessing(true);
-            const { videoIds, filePaths } = await service.processVideos(files, outputDir);
+            const { videoIds, filePaths } = await service.processVideos(files);
 
             // Initialize video entries
             const newVideos = filePaths.map((filePath, index) => ({
@@ -320,9 +226,9 @@ const BlackWhiteColorizerApp = () => {
             }));
             setVideos(prevVideos => [...prevVideos, ...newVideos]);
 
-            // Start processing each video
+            // Start polling for each video
             newVideos.forEach(video => {
-                processVideo(video.id, video.path);
+                processVideo(video.id);
             });
 
         } catch (error) {
@@ -330,7 +236,6 @@ const BlackWhiteColorizerApp = () => {
             setIsProcessing(false);
             alert(`Error processing files: ${error.message}`);
         }
-        // Reset the input so you can select the same files again
         e.target.value = '';
     };
 
@@ -346,7 +251,7 @@ const BlackWhiteColorizerApp = () => {
         setDragOver(false);
     };
 
-    const processVideo = useCallback(async (videoId, filePath) => {
+    const processVideo = useCallback(async (videoId) => {
         setVideos(prevVideos =>
             prevVideos.map(v =>
                 v.id === videoId ? { ...v, status: 'processing', progress: 0 } : v
@@ -354,25 +259,31 @@ const BlackWhiteColorizerApp = () => {
         );
 
         try {
-            // Start the processing and get a promise
-            const processPromise = service.processVideo(videoId, filePath, outputDir);
-            setProcessingPromises(prev => ({ ...prev, [videoId]: processPromise }));
-
-            // Poll for progress updates
             let currentProgress = 0;
-            while (currentProgress < 100) {
-                const progress = await service.getVideoProcessingProgress(videoId, processPromise);
+            let status = 'processing';
+            let output = null;
+            let error = null;
+
+            while (status === 'processing') {
+                const { progress, status: newStatus, error: newError, output: newOutput } = await service.getVideoProcessingProgress(videoId);
                 currentProgress = progress;
+                status = newStatus;
+                error = newError;
+                output = newOutput;
+
                 setVideos(prevVideos =>
-                    prevVideos.map(v => (v.id === videoId ? { ...v, progress } : v))
+                    prevVideos.map(v => (v.id === videoId ? { ...v, progress, status } : v))
                 );
-                if (currentProgress < 100) {
-                    await new Promise(resolve => setTimeout(resolve, 100)); // Poll every 100ms
+
+                if (status === 'processing') {
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Poll every 500ms
                 }
             }
 
-            // Get output videos
-            const output = await service.getOutputVideos(videoId, processPromise);
+            if (status === 'failed') {
+                throw new Error(error || 'Processing failed.');
+            }
+
             setVideos(prevVideos =>
                 prevVideos.map(v =>
                     v.id === videoId
@@ -394,11 +305,6 @@ const BlackWhiteColorizerApp = () => {
             console.error(`Error processing video ${videoId}:`, error);
         } finally {
             setIsProcessing(false);
-            setProcessingPromises(prev => {
-                const newPromises = { ...prev };
-                delete newPromises[videoId];
-                return newPromises;
-            });
         }
     }, []);
 
@@ -407,7 +313,7 @@ const BlackWhiteColorizerApp = () => {
         setIsProcessing(true);
         videos.forEach(video => {
             if (video.status === 'pending' || video.status === 'failed') {
-                processVideo(video.id, video.path);
+                processVideo(video.id);
             }
         });
     };
@@ -418,10 +324,7 @@ const BlackWhiteColorizerApp = () => {
                 v.id === videoId ? { ...v, error: undefined, status: 'pending', progress: 0 } : v
             )
         );
-        const video = videos.find(v => v.id === videoId);
-        if (video) {
-            processVideo(video.id, video.path);
-        }
+        processVideo(videoId);
     };
 
     return (
