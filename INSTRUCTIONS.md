@@ -38,20 +38,13 @@ This script colorizes black and white videos using the DeOldify library and appl
     pip install torch torchvision torchaudio --index-url [https://download.pytorch.org/whl/cpu](https://download.pytorch.org/whl/cpu)  # For CPU
     # OR, for MPS (Apple Silicon M1/M2/M3):
     # pip install torch torchvision torchaudio
-    pip install deoldify opencv-python
+    pip install deoldify opencv-python yt-dlp
     ```
     *If you have a compatible NVIDIA GPU, you can install a GPU-enabled version of PyTorch for significantly faster processing.  Refer to the official PyTorch installation guide for instructions:* [https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/)
 
-4. **Download Pre-trained Weights**
-    * You need to download and place the pre-trained weights:
-        ```bash
-        mkdir models
-        wget [https://data.deepai.org/deoldify/ColorizeVideo_gen.pth](https://www.google.com/search?q=https://data.deepai.org/deoldify/ColorizeVideo_gen.pth) -O ./models/ColorizeVideo_gen.pth
-        ```
+4.  **Place the Script:**
 
-5.  **Place the Script:**
-
-    Copy the `colorize_filter.py` script (the Python code from the previous responses) into the `DeOldify` directory (the same directory where you have the `models` folder).
+    Copy the `colorize_filter.py` script (the Python code from the previous responses) into the `DeOldify` directory. The script will automatically download and cache the necessary model files in a local directory (typically `~/.cache/deoldify/models/`) when first run.
 
 ## Environment Activation
 

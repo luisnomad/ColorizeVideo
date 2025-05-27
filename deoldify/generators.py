@@ -46,7 +46,6 @@ def gen_inference_wide(
     learn.path = cache_dir.parent # So learn.load() looks in cache_dir.parent / "models"
     # --- Caching Logic End ---
     
-    print(f"DEBUG: Attempting to load model from: {str(learn.path / 'models' / (weights_name + '.pth'))}")
     learn.load(weights_name)
     learn.model.eval()
     return learn
@@ -147,7 +146,6 @@ def gen_inference_deep(
     learn.path = cache_dir.parent # So learn.load() looks in cache_dir.parent / "models"
     # --- Caching Logic End ---
     
-    print(f"DEBUG: Attempting to load model from: {str(learn.path / 'models' / (weights_name + '.pth'))}")
     learn.load(weights_name)
     learn.model.eval()
     return learn
