@@ -59,8 +59,119 @@ python3 colorize_filter.py -input_dir /path/to/bw_clips -output_dir /path/to/col
 
 * Outputs: For each `clip1.mp4`, produces `clip1_color.mp4` (raw DeOldify output) and `clip1_final.mp4` (post-processed) in the `output_dir`.
 
-## Roadmap
+## Video Colorization UI Application
 
-I am planning to add the following features:
-- Dockerized app for easy installations
-- Web interface to allow processing multiple videos, with progress indicator and side by side compare tool.
+This project now includes a user-friendly web interface for colorizing videos, providing an alternative to the command-line script. It's built with a React frontend and a FastAPI backend, utilizing the same core `colorize_filter.py` engine.
+
+### Installation & Setup
+
+**Prerequisites:**
+*   **Python:** Version 3.8-3.10 is recommended.
+*   **Node.js:** LTS version recommended (e.g., 18.x or 20.x) along with npm (which comes with Node.js).
+
+**1. Clone the Repository:**
+If you haven't already, clone this repository to your local machine.
+```bash
+git clone <repository_url>
+cd <repository_directory>
+```
+
+**2. Backend Setup:**
+The backend server powers the video processing.
+*   **Location:** `video_ui_app/backend/`
+*   **Virtual Environment (Recommended):**
+    Navigate to the backend directory and create/activate a Python virtual environment:
+    ```bash
+    cd video_ui_app/backend
+    python -m venv venv_ui  # Or any name you prefer
+    source venv_ui/bin/activate  # On Windows: venv_ui\Scripts\activate
+    ```
+*   **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+*   **Crucial Note on Dependencies:** The Python dependencies, especially `torch`, `torchvision`, and `deoldify`, are very large. Ensure you have a stable internet connection and sufficient disk space (several GBs may be required). The installation process can be lengthy. If you encounter issues, verify your Python version, internet connection, and available disk space.
+
+**3. Frontend Setup:**
+The frontend provides the web interface.
+*   **Location:** `video_ui_app/frontend/`
+*   **Install Dependencies:**
+    Navigate to the frontend directory and install npm packages:
+    ```bash
+    cd video_ui_app/frontend 
+    npm install
+    ```
+    (If you were previously in the backend directory, you might use `cd ../frontend` or `cd /path/to/repository/video_ui_app/frontend`)
+
+### Running the Application
+
+**Step 1: Start the Backend Server**
+*   Open a terminal.
+*   Navigate to the backend directory: `cd /path/to/repository/video_ui_app/backend`
+*   Activate your Python virtual environment (e.g., `source venv_ui/bin/activate`).
+*   Start the Uvicorn server:
+    ```bash
+    uvicorn main:app --host 0.0.0.0 --port 8000
+    ```
+    *   `--host 0.0.0.0`: Makes the server accessible from other devices on your network (e.g., if you want to test from a mobile device). Use `127.0.0.1` to restrict to local machine only.
+    *   `--port 8000`: Specifies the port. If 8000 is in use, you can change it (e.g., `--port 8001`) but ensure your frontend configuration (if any hardcoded) matches.
+
+**Step 2: Start the Frontend Development Server**
+*   Open a **new** terminal (leave the backend server running in its own terminal).
+*   Navigate to the frontend directory: `cd /path/to/repository/video_ui_app/frontend`
+*   Start the Vite development server:
+    ```bash
+    npm run dev
+    ```
+    *   The terminal will typically display the local address where the frontend is being served (e.g., `http://localhost:5173`).
+
+**Step 3: Access the UI**
+*   Open your web browser.
+*   Navigate to the address shown by the frontend development server (e.g., `http://localhost:5173`).
+
+### Features
+
+*   **Video Upload:** Easily upload videos using a drag-and-drop area or a traditional file selection dialog.
+*   **Parameter Configuration:**
+    *   Adjust colorization parameters like `Render Factor`, `Saturation Scale`, `CLAHE Clip Limit`, and `Blend Factor` using intuitive sliders.
+    *   Hover over parameter labels to see tooltips explaining their effects.
+    *   Default values are pre-filled based on the `colorize_filter.py` script.
+*   **Real-Time Processing Progress:**
+    *   Monitor the video colorization process in real-time.
+    *   The UI displays the current status, stage of processing (e.g., "Loading Model", "Colorization (DeOldify)", "Post-processing"), and detailed messages from the backend.
+    *   For the post-processing stage, frame-by-frame progress (`current_frame`/`total_frames`) is shown.
+*   **Results & Download:**
+    *   Once processing is complete, the UI indicates the final status.
+    *   A list of processed videos is available, with "Download" links for successfully colorized videos.
+*   **Cache Management:**
+    *   View current disk space usage for processed videos and uploaded original files.
+    *   "Clear Space" option for individual videos to delete both the processed output and the uploaded original.
+    *   "Clear All Cache" option to remove all processed videos, all uploaded originals, and clear the task history from the server's memory.
+    *   Confirmation dialogs are provided for deletion actions.
+
+### Troubleshooting
+
+*   **Backend server fails to start:**
+    *   Ensure your Python virtual environment is activated.
+    *   Verify all dependencies were installed correctly with `pip install -r requirements.txt`.
+    *   Check if the port (e.g., 8000) is already in use by another application. Try a different port if necessary.
+*   **Frontend server fails to start (`npm run dev`):**
+    *   Ensure you have run `npm install` in the `video_ui_app/frontend` directory.
+    *   Check for any error messages in the terminal; they often indicate missing dependencies or configuration issues.
+*   **UI cannot connect to the backend / Videos don't process:**
+    *   Confirm the backend server is running and accessible.
+    *   Check browser's developer console (Network tab) for failed API requests (e.g., to `/api/process_video`). This can indicate issues with backend routing, CORS (though FastAPI is usually configured for this in dev), or incorrect port assumptions.
+*   **Video processing fails partway through:**
+    *   Check the backend server's console output for error messages from `colorize_filter.py` or Uvicorn.
+    *   Ensure the uploaded video is in a common format (e.g., `.mp4`) and is not corrupted.
+    *   Very large or high-resolution videos might exhaust system resources (RAM, VRAM if using GPU).
+*   **Slow performance:**
+    *   Video colorization, especially the DeOldify model processing, is computationally intensive. Performance will be significantly slower without a compatible GPU.
+    *   The post-processing step also adds to the overall time.
+*   **Python Dependency Issues (especially `torch` or `deoldify`):**
+    *   These are large libraries. Installation issues are common due to:
+        *   **Internet connection:** Interrupted downloads can corrupt packages.
+        *   **Disk space:** Insufficient disk space.
+        *   **Python version:** Ensure compatibility (3.8-3.10 recommended).
+        *   **Operating System / Build tools:** Some packages might have system-level dependencies.
+    *   Try reinstalling problematic packages in the activated virtual environment. Consider using a wired internet connection for large downloads.

@@ -2,6 +2,18 @@
 
 This script colorizes black and white videos using the DeOldify library and applies post-processing (histogram matching and blending) with OpenCV to improve temporal consistency and reduce flickering.
 
+---
+
+**Note: New Web UI Available!**
+
+A graphical user interface (Web UI) is now available for a more user-friendly way to process videos. It allows for easier parameter adjustments, real-time progress tracking, and management of processed files.
+
+For detailed instructions on setting up and running the Web UI, please see the [Video Colorization UI Application section in README.md](README.md#video-colorization-ui-application).
+
+The instructions below pertain to the command-line script `colorize_filter.py`.
+
+---
+
 ## Installation Instructions
 
 1.  **Clone the ColorizeVideo Repository:**
