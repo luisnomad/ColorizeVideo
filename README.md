@@ -90,7 +90,7 @@ The backend server powers the video processing.
     ```bash
     pip install -r requirements.txt
     ```
-*   **Crucial Note on Dependencies:** The Python dependencies, especially `torch`, `torchvision`, and `deoldify`, are very large. Ensure you have a stable internet connection and sufficient disk space (several GBs may be required). The installation process can be lengthy. If you encounter issues, verify your Python version, internet connection, and available disk space.
+*   **Crucial Note on Dependencies:** The Python dependencies, especially `torch` (and its companions like `torchvision`, `torchaudio`) and `opencv-python`, are very large. These are required by the local `deoldify` library. Ensure you have a stable internet connection and sufficient disk space (several GBs may be required for `torch`). The installation process for these dependencies can be lengthy. If you encounter issues, verify your Python version, internet connection, and available disk space.
 
 **3. Frontend Setup:**
 The frontend provides the web interface.
@@ -168,7 +168,7 @@ The frontend provides the web interface.
 *   **Slow performance:**
     *   Video colorization, especially the DeOldify model processing, is computationally intensive. Performance will be significantly slower without a compatible GPU.
     *   The post-processing step also adds to the overall time.
-*   **Python Dependency Issues (especially `torch` or `deoldify`):**
+*   **Python Dependency Issues (especially for `torch` and its related packages):**
     *   These are large libraries. Installation issues are common due to:
         *   **Internet connection:** Interrupted downloads can corrupt packages.
         *   **Disk space:** Insufficient disk space.

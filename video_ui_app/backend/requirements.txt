@@ -2,5 +2,4 @@ fastapi
 uvicorn[standard]
 torch
 opencv-python
-deoldify
 python-multipart

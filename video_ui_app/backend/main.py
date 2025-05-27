@@ -3,12 +3,28 @@ import shutil
 import uuid
 import asyncio # For SSE Queues
 import json # For SSE message formatting
+import sys # For sys.path modification
+
+# Add the project root directory to sys.path
+# This allows importing the 'deoldify' module from the project root
+# The backend is in video_ui_app/backend/, so root is two levels up.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+# Ensure that the current backend directory is also in path for relative imports if needed
+# though explicit relative imports (.colorize_filter) are preferred.
+# BACKEND_DIR = os.path.dirname(__file__)
+# if BACKEND_DIR not in sys.path:
+# sys.path.insert(0, BACKEND_DIR)
+
+
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, BackgroundTasks, Request
 from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from pathlib import Path
 import logging
 
-# Assuming colorize_filter.py is in the same directory
+# Assuming colorize_filter.py is in the same directory (now backend.colorize_filter)
+# The sys.path modification above should make 'deoldify' available to colorize_filter.py
 from .colorize_filter import (
     colorize_video,
     DEFAULT_RENDER_FACTOR,
