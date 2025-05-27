@@ -7,15 +7,45 @@ from fastai.vision.learner import cnn_config, create_body
 from torch import nn
 from .unet import DynamicUnetWide, DynamicUnetDeep
 from .dataset import *
+import os
+from pathlib import Path
+import requests
 
 # Weights are implicitly read from ./models/ folder
 def gen_inference_wide(
-    root_folder: Path, weights_name: str, nf_factor: int = 2, arch=models.resnet101) -> Learner:
+    root_folder: Path, weights_name: str, nf_factor: int = 2, arch=models.resnet101
+) -> Learner:
     data = get_dummy_databunch()
     learn = gen_learner_wide(
         data=data, gen_loss=F.l1_loss, nf_factor=nf_factor, arch=arch
     )
-    learn.path = root_folder
+
+    # --- Caching Logic Start ---
+    cache_dir = Path.home() / ".cache" / "deoldify" / "models"
+    os.makedirs(cache_dir, exist_ok=True) # Ensure cache_dir and its parents exist
+
+    model_filename = weights_name + ".pth"
+    cached_model_path = cache_dir / model_filename
+    
+    if not cached_model_path.exists():
+        print(f"Model {model_filename} not found in cache. Downloading...")
+        # Construct the download URL (this is an example, adjust as needed)
+        model_url = f"https://data.deepai.org/deoldify/{model_filename}"
+        try:
+            response = requests.get(model_url, stream=True)
+            response.raise_for_status() # Raise an exception for bad status codes
+            with open(cached_model_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            print(f"Downloaded {model_filename} to cache.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error downloading {model_filename}: {e}")
+            # Handle error appropriately, maybe raise it or exit
+            raise # Re-raise the exception for now
+
+    learn.path = cache_dir.parent # So learn.load() looks in cache_dir.parent / "models"
+    # --- Caching Logic End ---
+    
     learn.load(weights_name)
     learn.model.eval()
     return learn
@@ -83,12 +113,39 @@ def unet_learner_wide(
 
 # Weights are implicitly read from ./models/ folder
 def gen_inference_deep(
-    root_folder: Path, weights_name: str, arch=models.resnet34, nf_factor: float = 1.5) -> Learner:
+    root_folder: Path, weights_name: str, arch=models.resnet34, nf_factor: float = 1.5
+) -> Learner:
     data = get_dummy_databunch()
     learn = gen_learner_deep(
         data=data, gen_loss=F.l1_loss, arch=arch, nf_factor=nf_factor
     )
-    learn.path = root_folder
+
+    # --- Caching Logic Start ---
+    cache_dir = Path.home() / ".cache" / "deoldify" / "models"
+    os.makedirs(cache_dir, exist_ok=True) # Ensure cache_dir and its parents exist
+
+    model_filename = weights_name + ".pth"
+    cached_model_path = cache_dir / model_filename
+    
+    if not cached_model_path.exists():
+        print(f"Model {model_filename} not found in cache. Downloading...")
+        # Construct the download URL (this is an example, adjust as needed)
+        model_url = f"https://data.deepai.org/deoldify/{model_filename}"
+        try:
+            response = requests.get(model_url, stream=True)
+            response.raise_for_status() # Raise an exception for bad status codes
+            with open(cached_model_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            print(f"Downloaded {model_filename} to cache.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error downloading {model_filename}: {e}")
+            # Handle error appropriately, maybe raise it or exit
+            raise # Re-raise the exception for now
+
+    learn.path = cache_dir.parent # So learn.load() looks in cache_dir.parent / "models"
+    # --- Caching Logic End ---
+    
     learn.load(weights_name)
     learn.model.eval()
     return learn

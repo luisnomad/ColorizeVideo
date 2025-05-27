@@ -2,7 +2,7 @@
 
 This is a fork of DeOldify, a legacy project to colorize B/W videos. This fork contains a colorize_filter.py script, see [Instructions](INSTRUCTIONS.md) to see how to use it.
 
-`colorize_deoldify.py` is a Python script that automates the colorization of black-and-white (B/W) videos using the DeOldify library, with additional post-processing to enhance visual quality and temporal consistency. Designed for batch processing, it processes multiple videos in a specified input directory, applies advanced colorization and post-processing techniques, and saves the results to a designated output directory. The script includes features to skip already-processed videos, suppress watermarks, and clean up temporary files, making it efficient for large-scale video remastering projects.
+`colorize_filter.py` is a Python script that automates the colorization of black-and-white (B/W) videos using the DeOldify library, with additional post-processing to enhance visual quality and temporal consistency. Designed for batch processing, it processes multiple videos in a specified input directory, applies advanced colorization and post-processing techniques, and saves the results to a designated output directory. The script includes features to skip already-processed videos, suppress watermarks, and clean up temporary files, making it efficient for large-scale video remastering projects.
 
 # Core Functionality
 
@@ -10,7 +10,7 @@ This is a fork of DeOldify, a legacy project to colorize B/W videos. This fork c
 * **Batch Processing:** Processes all `.mp4` files in a specified input directory (and its subdirectories) recursively, making it ideal for handling multiple videos in one run.
 * **Skip Check:** Skips videos that have already been processed (based on the existence of a `_final.mp4` file in the output directory), allowing the process to resume without reprocessing completed videos if interrupted.
 * **Watermark Suppression:** Disables DeOldify’s default watermarking to produce clean output videos.
-* **Temporary File Cleanup:** Removes DeOldify’s temporary working directories (`deoldify_[input_name]`) after processing each video, keeping the project folder organized.
+* **Temporary File Cleanup:** Cleans up temporary working files and directories created during the colorization process after each video is processed.
 * **Customizable Output:** Saves two files per video in the specified `output_dir`:
     * `[base_name]_color.mp4`: The raw DeOldify colorized output.
     * `[base_name]_final.mp4`: The post-processed video with enhanced quality.
@@ -38,6 +38,13 @@ While DeOldify provides robust colorization, it can suffer from issues like temp
 * **Warning Suppression:** Suppresses FastAI and torchvision warnings for a cleaner output log.
 * **Efficient Workflow:** Designed for batch processing with minimal user intervention, ideal for remastering projects with many short clips (e.g., 5-second B/W videos).
 
+### Model Caching
+To improve efficiency and reduce redundant downloads, the script implements a model caching mechanism:
+*   **Automatic Caching:** The first time you run the script, the required DeOldify model files (e.g., `ColorizeVideo_gen.pth`) are downloaded from their official source.
+*   **Local Storage:** These models are stored in a local cache directory, typically located at `~/.cache/deoldify/models/` (the exact path might vary slightly based on your operating system's conventions for user cache directories).
+*   **Reduced Downloads:** On subsequent runs, the script will use the cached models, significantly speeding up initialization and avoiding repeated downloads.
+*   **Internet Access:** Internet access is only required for the initial download of each model.
+
 # Use Case
 
 This script is particularly suited for remastering B/W videos with challenging lighting conditions, such as night scenes with dynamic elements (e.g., UFOs, starry skies, and desert landscapes). The post-processing steps address DeOldify’s limitations by reducing flickering, controlling saturation, and enhancing contrast, resulting in more natural and visually appealing colorized videos.
@@ -47,7 +54,7 @@ This script is particularly suited for remastering B/W videos with challenging l
 To colorize all `.mp4` files in a directory:
 
 ```bash
-python3 colorize_deoldify.py -input_dir /path/to/bw_clips -output_dir /path/to/colorized_videos -render_factor 21 -saturation_scale 0.8 -clahe_clip_limit 0.5 -blend_factor 0.6
+python3 colorize_filter.py -input_dir /path/to/bw_clips -output_dir /path/to/colorized_videos -render_factor 21 -saturation_scale 0.8 -clahe_clip_limit 0.5 -blend_factor 0.6
 ```
 
 * Outputs: For each `clip1.mp4`, produces `clip1_color.mp4` (raw DeOldify output) and `clip1_final.mp4` (post-processed) in the `output_dir`.

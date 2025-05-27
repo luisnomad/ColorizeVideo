@@ -5,6 +5,7 @@ import shutil
 import glob
 import cv2
 import numpy as np
+import tempfile
 from deoldify import device
 from deoldify.device_id import DeviceId
 from deoldify.visualize import get_video_colorizer
@@ -118,8 +119,9 @@ def colorize_video(input_path, output_path, render_factor=DEFAULT_RENDER_FACTOR,
         raise FileNotFoundError(f"Input file not found: {input_path}")
 
     base_name = os.path.splitext(os.path.basename(input_path))[0]
-    working_dir = os.path.join(os.path.dirname(input_path), f"deoldify_{base_name}")
-    os.makedirs(working_dir, exist_ok=True)
+    # Use tempfile for working directory
+    working_dir = tempfile.mkdtemp(prefix="deoldify_")
+    # os.makedirs(working_dir, exist_ok=True) # Not needed with mkdtemp
     print(f"Working directory: {working_dir}")
 
     original_cwd = os.getcwd()
@@ -134,16 +136,17 @@ def colorize_video(input_path, output_path, render_factor=DEFAULT_RENDER_FACTOR,
         )
         print(f"Colorization complete, result path: {result_path}")
 
-        expected_result = os.path.join("video", "result", f"{base_name}.mp4")
-        if not os.path.exists(expected_result):
-            raise RuntimeError(f"Colorization failed, expected result not found: {expected_result}")
+        # expected_result = os.path.join("video", "result", f"{base_name}.mp4") # Removed
+        # if not os.path.exists(expected_result): # Removed
+        #     raise RuntimeError(f"Colorization failed, expected result not found: {expected_result}") # Removed
 
         output_dir = os.path.dirname(output_path)
         if output_dir:
             print(f"Creating output directory if needed: {output_dir}")
             os.makedirs(output_dir, exist_ok=True)
-        print(f"Moving {expected_result} to {output_path}...")
-        os.rename(expected_result, output_path)
+        # Use result_path directly for renaming
+        print(f"Moving {result_path} to {output_path}...")
+        os.rename(result_path, output_path)
         print(f"Colorized video saved at: {output_path}")
 
         final_output_path = os.path.join(output_dir, f"{base_name}_final.mp4")
