@@ -107,14 +107,20 @@ The frontend provides the web interface.
 
 **Step 1: Start the Backend Server**
 *   Open a terminal.
-*   Navigate to the backend directory: `cd /path/to/repository/video_ui_app/backend`
-*   Activate your Python virtual environment (e.g., `source venv_ui/bin/activate`).
+*   Navigate to the **project root directory** (e.g., `/path/to/repository/`, the directory that contains `video_ui_app/` and `deoldify/`).
+*   Activate your Python virtual environment (which was created inside `video_ui_app/backend/`):
+    ```bash
+    source video_ui_app/backend/venv_ui/bin/activate 
+    # On Windows: video_ui_app\backend\venv_ui\Scripts\activate
+    ```
+    *You should see `(venv_ui)` at the beginning of your terminal prompt. The path to activate is relative to your current directory (the project root).*
 *   Start the Uvicorn server:
     ```bash
-    uvicorn main:app --host 0.0.0.0 --port 8000
+    python -m uvicorn video_ui_app.backend.main:app --host 0.0.0.0 --port 8000
     ```
-    *   `--host 0.0.0.0`: Makes the server accessible from other devices on your network (e.g., if you want to test from a mobile device). Use `127.0.0.1` to restrict to local machine only.
-    *   `--port 8000`: Specifies the port. If 8000 is in use, you can change it (e.g., `--port 8001`) but ensure your frontend configuration (if any hardcoded) matches.
+    *   Running from the project root and specifying the module path like `video_ui_app.backend.main:app` helps Python correctly recognize the backend as a package, resolving relative import issues and ensuring the local `deoldify` library is correctly imported.
+    *   `--host 0.0.0.0`: Makes the server accessible from other devices on your network. Use `127.0.0.1` to restrict to local machine only.
+    *   `--port 8000`: Specifies the port. Change if 8000 is in use.
 
 **Step 2: Start the Frontend Development Server**
 *   Open a **new** terminal (leave the backend server running in its own terminal).
@@ -151,9 +157,26 @@ The frontend provides the web interface.
 
 ### Troubleshooting
 
-*   **Backend server fails to start:**
-    *   Ensure your Python virtual environment is activated.
-    *   Verify all dependencies were installed correctly with `pip install -r requirements.txt`.
+*   **`fastapi` (or other dependency) not found / `ModuleNotFoundError`:**
+    *   **Is the Python virtual environment active?** When you run `pip install -r video_ui_app/backend/requirements.txt` (from project root, after creating venv in backend) and `python -m uvicorn video_ui_app.backend.main:app` (from project root), you should see the virtual environment name in your terminal prompt (e.g., `(venv_ui)`). If not, activate it:
+        ```bash
+        # Assuming you are in the project root directory
+        source video_ui_app/backend/venv_ui/bin/activate 
+        # On Windows: video_ui_app\backend\venv_ui\Scripts\activate
+        ```
+    *   **Were dependencies installed correctly in this environment?** With the virtual environment active, try listing installed packages:
+        ```bash
+        pip list
+        ```
+        Check if `fastapi` and other key packages from `video_ui_app/backend/requirements.txt` are listed.
+    *   **If key dependencies are missing:** Re-run the installation within the active virtual environment (ensure you are in the project root when running this, or adjust path to requirements.txt):
+        ```bash
+        pip install -r video_ui_app/backend/requirements.txt
+        ```
+        Watch for any errors during this installation process.
+*   **Backend server fails to start (after checking dependency issues):**
+    *   Ensure your Python virtual environment is active (see above).
+    *   Verify all dependencies were installed correctly (see above).
     *   Check if the port (e.g., 8000) is already in use by another application. Try a different port if necessary.
 *   **Frontend server fails to start (`npm run dev`):**
     *   Ensure you have run `npm install` in the `video_ui_app/frontend` directory.
