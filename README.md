@@ -90,7 +90,8 @@ The backend server powers the video processing.
     ```bash
     pip install -r requirements.txt
     ```
-*   **Crucial Note on Dependencies:** The Python dependencies, especially `torch` (and its companions like `torchvision`, `torchaudio`) and `opencv-python`, are very large. Furthermore, since this project uses a local version of the `deoldify` library (which includes components from `fastai`), other common data science libraries like `matplotlib`, `pandas`, `numpy`, and `scipy` are also required. All these necessary packages are listed in `requirements.txt`. Ensure you have a stable internet connection and sufficient disk space (several GBs may be required, primarily for `torch`). The installation process for these dependencies can be lengthy. If you encounter issues, verify your Python version, internet connection, and available disk space.
+*   **Crucial Note on Dependencies:** The local `deoldify` library (which includes components from `fastai`) has a significant number of dependencies, including `torch`, `opencv-python`, and various other data science and utility packages. All these necessary packages, with their specific versions, are listed in the `video_ui_app/backend/requirements.txt` file. Ensure you install them using `pip install -r video_ui_app/backend/requirements.txt` in your activated virtual environment.
+        The installation, particularly for `torch`, can be lengthy and require several gigabytes of disk space and a stable internet connection. Please be patient during this process. If you encounter issues, verify your Python version, internet connection, and available disk space.
 
 **3. Frontend Setup:**
 The frontend provides the web interface.
@@ -157,26 +158,22 @@ The frontend provides the web interface.
 
 ### Troubleshooting
 
-*   **`fastapi` (or other dependency) not found / `ModuleNotFoundError`:**
-    *   **Is the Python virtual environment active?** When you run `pip install -r video_ui_app/backend/requirements.txt` (from project root, after creating venv in backend) and `python -m uvicorn video_ui_app.backend.main:app` (from project root), you should see the virtual environment name in your terminal prompt (e.g., `(venv_ui)`). If not, activate it:
+*   **`ModuleNotFoundError` (e.g., `No module named 'fastapi'`, `'torch'`, `'pandas'`, etc.):**
+    *   **Is the Python virtual environment active?** When you run `pip install ...` and `python -m uvicorn ...`, your terminal prompt should indicate the active environment (e.g., `(venv_ui)`). If not, activate it:
         ```bash
         # Assuming you are in the project root directory
         source video_ui_app/backend/venv_ui/bin/activate
         # On Windows: video_ui_app\backend\venv_ui\Scripts\activate
         ```
-    *   **Were dependencies installed correctly in this environment?** With the virtual environment active, try listing installed packages:
+    *   **Were all dependencies installed from `requirements.txt`?** The `video_ui_app/backend/requirements.txt` file lists all necessary Python packages. Ensure you have installed them correctly within the active virtual environment:
         ```bash
-        pip list
-        ```
-        Check if `fastapi` and other key packages from `video_ui_app/backend/requirements.txt` are listed.
-    *   **If key dependencies are missing:** Re-run the installation within the active virtual environment (ensure you are in the project root when running this, or adjust path to requirements.txt):
-        ```bash
+        # Assuming you are in the project root and venv is active
         pip install -r video_ui_app/backend/requirements.txt
         ```
-        Watch for any errors during this installation process.
+        Watch for any errors during this installation. If it was interrupted, run it again.
 *   **Backend server fails to start (after checking dependency issues):**
     *   Ensure your Python virtual environment is active (see above).
-    *   Verify all dependencies were installed correctly (see above).
+    *   Verify all dependencies were installed correctly from `video_ui_app/backend/requirements.txt` (see above).
     *   Check if the port (e.g., 8000) is already in use by another application. Try a different port if necessary.
 *   **Frontend server fails to start (`npm run dev`):**
     *   Ensure you have run `npm install` in the `video_ui_app/frontend` directory.
