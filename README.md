@@ -90,7 +90,7 @@ The backend server powers the video processing.
     ```bash
     pip install -r requirements.txt
     ```
-*   **Crucial Note on Dependencies:** The Python dependencies, especially `torch` (and its companions like `torchvision`, `torchaudio`) and `opencv-python`, are very large. Furthermore, since this project uses a local version of the `deoldify` library (which includes components from `fastai`), other common data science libraries like `matplotlib`, `pandas`, and `numpy` are also required. All these necessary packages are listed in `requirements.txt`. Ensure you have a stable internet connection and sufficient disk space (several GBs may be required, primarily for `torch`). The installation process for these dependencies can be lengthy. If you encounter issues, verify your Python version, internet connection, and available disk space.
+*   **Crucial Note on Dependencies:** The Python dependencies, especially `torch` (and its companions like `torchvision`, `torchaudio`) and `opencv-python`, are very large. Furthermore, since this project uses a local version of the `deoldify` library (which includes components from `fastai`), other common data science libraries like `matplotlib`, `pandas`, `numpy`, and `scipy` are also required. All these necessary packages are listed in `requirements.txt`. Ensure you have a stable internet connection and sufficient disk space (several GBs may be required, primarily for `torch`). The installation process for these dependencies can be lengthy. If you encounter issues, verify your Python version, internet connection, and available disk space.
 
 **3. Frontend Setup:**
 The frontend provides the web interface.
