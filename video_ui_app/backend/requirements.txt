@@ -3,3 +3,6 @@ uvicorn[standard]
 torch
 opencv-python
 python-multipart
+matplotlib
+pandas
+numpy

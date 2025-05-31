@@ -65,14 +65,14 @@ async def send_sse_update(task_id: str, update_data: dict):
 
 
 def run_colorization_task(
-    task_id: str, 
-    input_path_str: str, 
+    task_id: str,
+    input_path_str: str,
     intermediate_output_path_str: str,
     params: dict,
     original_filename_for_status: str # Added to store original filename
 ):
     input_path = Path(input_path_str)
-    
+
     # Update task status with original input path at the beginning
     if task_id in tasks_status:
         tasks_status[task_id]["original_input_path"] = input_path_str
@@ -107,7 +107,7 @@ def run_colorization_task(
             blend_factor=params["blend_factor"],
             progress_callback=progress_callback_sync
         )
-        
+
         final_video_path = Path(final_video_path_str)
         final_video_filename = final_video_path.name
 
@@ -141,8 +141,8 @@ def run_colorization_task(
         asyncio.run(send_sse_update(task_id, error_status))
     finally:
         if task_id in sse_listeners:
-            asyncio.run(sse_listeners[task_id].put(None)) 
-        
+            asyncio.run(sse_listeners[task_id].put(None))
+
         # Do NOT delete input_path here if it's original_input_path. It will be managed by cache endpoints.
         # Only delete if it was a temporary copy specific to this run_colorization_task IF that was the design.
         # Current design: input_path_str IS the path in UPLOADS_DIR.
@@ -213,7 +213,7 @@ async def clear_all_cache():
                 deleted_files_count +=1
             except Exception as e:
                 logger.error(f"Error deleting file {entry.path}: {e}")
-    
+
     # Clear tasks_status (or mark as deleted)
     # For simplicity, we clear it. A more robust system might mark tasks.
     tasks_to_remove = list(tasks_status.keys()) # Avoid dict size change during iteration
@@ -257,7 +257,7 @@ async def clear_video_from_cache(task_id: str):
                     deleted_files_log.append(f"Deleted original uploaded video: {original_input_path_str}")
                 except Exception as e:
                     logger.error(f"Error deleting original file {original_input_path_str} for task {task_id}: {e}")
-    
+
     # Remove the task from memory
     del tasks_status[task_id]
     # Signal SSE listener if active
@@ -274,16 +274,16 @@ async def download_video(task_id: str):
     task_info = tasks_status.get(task_id)
     if not task_info:
         raise HTTPException(status_code=404, detail="Task ID not found.")
-    
+
     if task_info.get("status") != "completed":
         raise HTTPException(status_code=400, detail="Video processing is not completed.")
-        
+
     final_path_str = task_info.get("final_path")
     output_filename = task_info.get("output_filename", "video.mp4") # Default filename if not found
 
     if not final_path_str:
         raise HTTPException(status_code=404, detail="Processed video file path not found in task details.")
-        
+
     final_path = Path(final_path_str)
     if not final_path.exists() or not final_path.is_file():
         logger.error(f"File not found at path for task {task_id}: {final_path_str}")
@@ -317,7 +317,7 @@ async def process_video_endpoint(
 
         intermediate_base_filename = f"{Path(safe_filename).stem}_color.mp4" # Intermediate name before _final
         intermediate_output_path = PROCESSED_VIDEOS_DIR / intermediate_base_filename
-        
+
         params = {
             "render_factor": render_factor,
             "saturation_scale": saturation_scale,
@@ -327,13 +327,13 @@ async def process_video_endpoint(
 
         # Initialize task status with original input path
         tasks_status[task_id] = {
-            "status": "queued", 
+            "status": "queued",
             "message": "Task queued for processing.",
             "original_filename": original_filename, # Store original filename
             "task_id": task_id,
             "original_input_path": str(input_path) # Store path of the file in UPLOADS_DIR
         }
-        
+
         background_tasks.add_task(
             run_colorization_task,
             task_id,
@@ -392,13 +392,13 @@ async def stream_progress(task_id: str, request: Request):
                 if await request.is_disconnected():
                     logger.info(f"Client disconnected for Task ID: {task_id}")
                     break
-                
+
                 message = await queue.get()
-                if message is None: 
+                if message is None:
                     logger.info(f"SSE stream ended for Task ID: {task_id} (sentinel received).")
                     yield f"data: {json.dumps(tasks_status.get(task_id, {'status': 'closed', 'message': 'Stream closed.'}))}\n\n" # Send final status if available
                     break
-                
+
                 yield f"data: {message}\n\n"
                 # No sleep needed here, queue.get() is awaitable
         except asyncio.CancelledError:

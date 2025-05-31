@@ -110,19 +110,19 @@ def post_process_video(input_path, output_path, saturation_scale=DEFAULT_SATURAT
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    
+
     if progress_callback:
         progress_callback({
-            "status": "processing", 
-            "stage": "Post-processing Start", 
+            "status": "processing",
+            "stage": "Post-processing Start",
             "message": f"Starting post-processing. Total frames: {total_frames}",
             "total_frames": total_frames,
-            "current_frame": 0 
+            "current_frame": 0
         })
 
     fourcc = cv2.VideoWriter_fourcc(*VIDEO_CODEC)
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-    
+
     current_frame_num = 0
     while True:
         ret, frame = cap.read()
@@ -136,8 +136,8 @@ def post_process_video(input_path, output_path, saturation_scale=DEFAULT_SATURAT
 
         if progress_callback and current_frame_num % 10 == 0: # Report every 10 frames or adjust as needed
             progress_callback({
-                "status": "processing", 
-                "stage": "Post-processing", 
+                "status": "processing",
+                "stage": "Post-processing",
                 "message": f"Processed frame {current_frame_num}/{total_frames}",
                 "current_frame": current_frame_num,
                 "total_frames": total_frames
@@ -147,8 +147,8 @@ def post_process_video(input_path, output_path, saturation_scale=DEFAULT_SATURAT
     out.release()
     if progress_callback:
         progress_callback({
-            "status": "processing", 
-            "stage": "Post-processing Finish", 
+            "status": "processing",
+            "stage": "Post-processing Finish",
             "message": f"Finished post-processing {current_frame_num} frames.",
             "current_frame": current_frame_num, # final count
             "total_frames": total_frames
@@ -201,7 +201,7 @@ def colorize_video(input_path, output_path, render_factor=DEFAULT_RENDER_FACTOR,
         progress_callback({"status": "processing", "stage": "Setup", "message": f"Working directory: {working_dir}", "current_frame": 0, "total_frames": 0})
     else:
         print(f"Working directory: {working_dir}")
-    
+
     original_cwd = os.getcwd()
     os.chdir(working_dir)
 
@@ -212,11 +212,11 @@ def colorize_video(input_path, output_path, render_factor=DEFAULT_RENDER_FACTOR,
             progress_callback({"status": "processing", "stage": "Colorization (DeOldify)", "message": f"Starting DeOldify colorization for {input_path} with render_factor={render_factor}...", "current_frame": 0, "total_frames": 0}) # total_frames unknown for this part
         else:
             print(f"Colorizing {input_path} with render_factor={render_factor}...")
-        
+
         result_path = colorizer.colorize_from_file_name(
             input_path,
             render_factor=render_factor,
-            watermarked=False 
+            watermarked=False
         )
         if progress_callback:
             progress_callback({"status": "processing", "stage": "Colorization (DeOldify) Complete", "message": f"DeOldify colorization complete. Intermediate file at: {result_path}", "current_frame": 0, "total_frames": 0})
@@ -230,7 +230,7 @@ def colorize_video(input_path, output_path, render_factor=DEFAULT_RENDER_FACTOR,
             else:
                 print(f"Creating output directory if needed: {output_dir}")
             os.makedirs(output_dir, exist_ok=True)
-        
+
         if progress_callback:
             progress_callback({"status": "processing", "stage": "Moving File", "message": f"Moving {result_path} to {output_path}...", "current_frame": 0, "total_frames": 0})
         else:
@@ -248,10 +248,10 @@ def colorize_video(input_path, output_path, render_factor=DEFAULT_RENDER_FACTOR,
             progress_callback({"status": "processing", "stage": "Post-processing Init", "message": f"Preparing for post-processing {output_path} to {final_output_path}...", "current_frame": 0, "total_frames": 0})
         else:
             print(f"Post-processing {output_path} to {final_output_path}...")
-        
+
         # Pass the callback to post_process_video
-        post_process_video(output_path, final_output_path, saturation_scale, clahe_clip_limit, blend_factor, progress_callback=progress_callback) 
-        
+        post_process_video(output_path, final_output_path, saturation_scale, clahe_clip_limit, blend_factor, progress_callback=progress_callback)
+
         if progress_callback:
             progress_callback({"status": "processing", "stage": "Post-processing Complete", "message": f"Final video saved at: {final_output_path}", "current_frame": 0, "total_frames": 0}) # Final message, frame counts from post_process_video are intermediate
         else:
@@ -284,26 +284,26 @@ def batch_colorize(input_dir, output_dir=DEFAULT_OUTPUT_DIR, render_factor=DEFAU
         progress_callback({"status": "info", "stage": "Batch Scan", "message": f"Found {len(input_files)} video(s) to process.", "current_frame": 0, "total_frames": len(input_files)})
     else:
         print(f"Found {len(input_files)} video(s) to process.")
-        
+
     for i, input_file in enumerate(input_files):
         base_name = os.path.splitext(os.path.basename(input_file))[0]
         output_file = os.path.join(output_dir, f"{base_name}_color.mp4")
         final_output_file = os.path.join(output_dir, f"{base_name}_final.mp4")
-        
+
         if progress_callback:
             progress_callback({"status": "processing", "stage": "Batch Item Start", "message": f"Processing video {i+1}/{len(input_files)}: {input_file}", "current_file_in_batch": i+1, "total_files_in_batch": len(input_files)})
-            
+
         if os.path.exists(final_output_file):
             if progress_callback:
                 progress_callback({"status": "skipped", "stage": "Batch Item Skip", "message": f"Skipping {input_file} -> {final_output_file} already exists."})
             else:
                 print(f"Skipping {input_file} -> {final_output_file} already exists.")
             continue
-        
+
         # No specific print here if progress_callback is active, it's handled by "Batch Item Start"
         elif not progress_callback:
             print(f"\nProcessing {input_file} -> {output_file}")
-            
+
         try:
             colorize_video(input_file, output_file, render_factor, saturation_scale, clahe_clip_limit, blend_factor, progress_callback=progress_callback)
         except Exception as e:

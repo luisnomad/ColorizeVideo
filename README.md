@@ -90,7 +90,7 @@ The backend server powers the video processing.
     ```bash
     pip install -r requirements.txt
     ```
-*   **Crucial Note on Dependencies:** The Python dependencies, especially `torch` (and its companions like `torchvision`, `torchaudio`) and `opencv-python`, are very large. These are required by the local `deoldify` library. Ensure you have a stable internet connection and sufficient disk space (several GBs may be required for `torch`). The installation process for these dependencies can be lengthy. If you encounter issues, verify your Python version, internet connection, and available disk space.
+*   **Crucial Note on Dependencies:** The Python dependencies, especially `torch` (and its companions like `torchvision`, `torchaudio`) and `opencv-python`, are very large. Furthermore, since this project uses a local version of the `deoldify` library (which includes components from `fastai`), other common data science libraries like `matplotlib`, `pandas`, and `numpy` are also required. All these necessary packages are listed in `requirements.txt`. Ensure you have a stable internet connection and sufficient disk space (several GBs may be required, primarily for `torch`). The installation process for these dependencies can be lengthy. If you encounter issues, verify your Python version, internet connection, and available disk space.
 
 **3. Frontend Setup:**
 The frontend provides the web interface.
@@ -98,7 +98,7 @@ The frontend provides the web interface.
 *   **Install Dependencies:**
     Navigate to the frontend directory and install npm packages:
     ```bash
-    cd video_ui_app/frontend 
+    cd video_ui_app/frontend
     npm install
     ```
     (If you were previously in the backend directory, you might use `cd ../frontend` or `cd /path/to/repository/video_ui_app/frontend`)
@@ -110,7 +110,7 @@ The frontend provides the web interface.
 *   Navigate to the **project root directory** (e.g., `/path/to/repository/`, the directory that contains `video_ui_app/` and `deoldify/`).
 *   Activate your Python virtual environment (which was created inside `video_ui_app/backend/`):
     ```bash
-    source video_ui_app/backend/venv_ui/bin/activate 
+    source video_ui_app/backend/venv_ui/bin/activate
     # On Windows: video_ui_app\backend\venv_ui\Scripts\activate
     ```
     *You should see `(venv_ui)` at the beginning of your terminal prompt. The path to activate is relative to your current directory (the project root).*
@@ -161,7 +161,7 @@ The frontend provides the web interface.
     *   **Is the Python virtual environment active?** When you run `pip install -r video_ui_app/backend/requirements.txt` (from project root, after creating venv in backend) and `python -m uvicorn video_ui_app.backend.main:app` (from project root), you should see the virtual environment name in your terminal prompt (e.g., `(venv_ui)`). If not, activate it:
         ```bash
         # Assuming you are in the project root directory
-        source video_ui_app/backend/venv_ui/bin/activate 
+        source video_ui_app/backend/venv_ui/bin/activate
         # On Windows: video_ui_app\backend\venv_ui\Scripts\activate
         ```
     *   **Were dependencies installed correctly in this environment?** With the virtual environment active, try listing installed packages:

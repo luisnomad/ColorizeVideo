@@ -70,9 +70,9 @@ function VideoList({ refreshTrigger, onVideoAction }) {
             {video.status === 'completed' && video.output_filename && (
               <>
                 <p><strong>Processed Filename:</strong> {video.output_filename}</p>
-                <a 
-                  href={`/api/videos/download/${video.task_id}`} 
-                  target="_blank" 
+                <a
+                  href={`/api/videos/download/${video.task_id}`}
+                  target="_blank"
                   rel="noopener noreferrer"
                   style={{ marginRight: '10px' }}
                 >

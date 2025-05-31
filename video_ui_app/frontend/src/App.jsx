@@ -9,7 +9,7 @@ import CacheManager from './components/CacheManager'; // Import CacheManager
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [params, setParams] = useState(PARAM_DEFAULTS);
-  
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [taskId, setTaskId] = useState(null);
   const [processingStatus, setProcessingStatus] = useState('');
@@ -25,7 +25,7 @@ function App() {
 
   const handleFileSelect = (file) => {
     setSelectedFile(file);
-    setProcessedFileUrl(''); 
+    setProcessedFileUrl('');
     setProcessingStatus('');
     setDetailedMessage('');
     setTaskId(null);
@@ -60,7 +60,7 @@ function App() {
     newEventSource.onmessage = (event) => {
       try {
         const result = JSON.parse(event.data);
-        
+
         setProcessingStatus(result.status || 'Receiving updates...');
         setDetailedMessage(result.message || '');
 
@@ -104,7 +104,7 @@ function App() {
       newEventSource.close();
       eventSourceRef.current = null;
       // Task ID might still be relevant if it failed and needs cleanup
-      // setTaskId(null); 
+      // setTaskId(null);
       triggerRefresh(); // Refresh lists even on error/closure
     };
   };
@@ -115,11 +115,11 @@ function App() {
       setDetailedMessage('');
       return;
     }
-    
+
     setIsProcessing(true);
     setProcessingStatus('Initializing...');
     setDetailedMessage('Uploading video and starting process...');
-    setProcessedFileUrl(''); 
+    setProcessedFileUrl('');
     setTaskId(null);
 
     const formData = new FormData();
@@ -178,9 +178,9 @@ function App() {
         <div style={{ margin: '20px 0', textAlign: 'center' }}>
           <ProcessButton onClick={handleProcessVideo} disabled={isProcessing} />
         </div>
-        
+
         {taskId && <p style={{ textAlign: 'center', marginTop: '10px', fontWeight: 'bold' }}>Task ID: {taskId}</p>}
-        
+
         <div style={{ textAlign: 'center', marginTop: '20px', padding: '10px', border: '1px solid #eee',  marginBottom: '20px' }}>
           <h3>Processing Status</h3>
           <p><strong>Status:</strong> {processingStatus || "Idle"}</p>
@@ -194,7 +194,7 @@ function App() {
 
         <CacheManager refreshTrigger={refreshKey} onCacheCleared={triggerRefresh} />
         <VideoList refreshTrigger={refreshKey} onVideoAction={triggerRefresh} />
-        
+
       </main>
     </div>
   );

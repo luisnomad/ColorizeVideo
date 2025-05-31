@@ -35,23 +35,23 @@ function VideoUpload({ onFileSelect }) {
   }, []);
 
   return (
-    <div 
-      style={{ 
-        border: '2px dashed #ccc', 
-        padding: '20px', 
+    <div
+      style={{
+        border: '2px dashed #ccc',
+        padding: '20px',
         textAlign: 'center',
-        cursor: 'pointer' 
+        cursor: 'pointer'
       }}
       onClick={handleButtonClick} // Allow clicking anywhere in the div to open file dialog
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <input 
-        type="file" 
+      <input
+        type="file"
         id="hiddenFileInput"
-        style={{ display: 'none' }} 
+        style={{ display: 'none' }}
         onChange={handleFileChange}
-        accept="video/*" 
+        accept="video/*"
       />
       {fileName ? (
         <p>Selected: {fileName}</p>
